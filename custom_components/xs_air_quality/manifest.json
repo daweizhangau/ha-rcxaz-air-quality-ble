@@ -1,0 +1,12 @@
+{
+  "domain": "xs_air_quality",
+  "name": "XS Air Quality Detector",
+  "codeowners": ["@daweizhangau"],
+  "config_flow": true,
+  "dependencies": ["bluetooth"],
+  "documentation": "https://github.com/daweizhangau/ha-xs-air-quality",
+  "integration_type": "device",
+  "iot_class": "local_push",
+  "requirements": ["bleak-retry-connector>=3.0.0"],
+  "version": "1.0.0"
+}

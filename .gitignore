@@ -144,3 +144,6 @@ cython_debug/
 *.swo
 *~
 .DS_Store
+
+# Project
+protocol_analysis
