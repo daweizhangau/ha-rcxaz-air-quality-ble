@@ -5,7 +5,10 @@ import logging
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.components.bluetooth import BluetoothServiceInfoBleak
+from homeassistant.components.bluetooth import (
+    BluetoothServiceInfoBleak,
+    async_discovered_service_info,
+)
 from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import CONF_ADDRESS
 from homeassistant.data_entry_flow import FlowResult
@@ -42,6 +45,7 @@ class RCXAZAirQualityConfigFlow(ConfigFlow, domain=DOMAIN):
 
     def __init__(self) -> None:
         self._discovery_info: BluetoothServiceInfoBleak | None = None
+        self._discovered_devices: dict[str, str] = {}  # address → name
 
     # ── Bluetooth auto-discovery ───────────────────────────────────────────────
 
@@ -83,22 +87,54 @@ class RCXAZAirQualityConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Allow the user to enter a Bluetooth address manually."""
-        errors: dict[str, str] = {}
-
+        """Scan for nearby RCXAZ devices and let the user pick one."""
         if user_input is not None:
-            address = user_input[CONF_ADDRESS].strip().upper()
+            address = user_input[CONF_ADDRESS]
             await self.async_set_unique_id(address)
             self._abort_if_unique_id_configured()
+            name = self._discovered_devices.get(address, address)
             return self.async_create_entry(
-                title=f"RCXAZ Air Quality ({address})",
+                title=name,
                 data={CONF_ADDRESS: address},
             )
 
+        # Scan for discovered devices
+        discovered = async_discovered_service_info(self.hass)
+        matches = [
+            info for info in discovered if _is_rcxaz_device(info)
+        ]
+
+        if not matches:
+            # No devices found — show a helpful message
+            return self.async_show_form(
+                step_id="user",
+                errors={"base": "no_devices_found"},
+                data_schema=vol.Schema({}),
+            )
+
+        # Store discovered names for lookup when user picks
+        self._discovered_devices = {
+            info.address: _device_name_from_discovery(info)
+            for info in matches
+        }
+
+        if len(matches) == 1:
+            # Only one device found — auto-select it
+            info = matches[0]
+            await self.async_set_unique_id(info.address)
+            self._abort_if_unique_id_configured()
+            return self.async_create_entry(
+                title=_device_name_from_discovery(info),
+                data={CONF_ADDRESS: info.address},
+            )
+
+        # Multiple devices — let the user pick
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema({
-                vol.Required(CONF_ADDRESS): str,
+                vol.Required(CONF_ADDRESS): vol.In({
+                    info.address: f"{info.name} ({info.address})"
+                    for info in matches
+                }),
             }),
-            errors=errors,
         )

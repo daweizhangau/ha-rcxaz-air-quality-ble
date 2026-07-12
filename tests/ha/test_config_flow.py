@@ -6,10 +6,11 @@ mocking the Bluetooth layer.
 """
 from __future__ import annotations
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from homeassistant.components.bluetooth import BluetoothServiceInfoBleak
+from homeassistant.const import CONF_ADDRESS
 from homeassistant.data_entry_flow import FlowResultType
 
 from custom_components.rcxaz_air_quality.const import C760_SERVICE_UUID, DOMAIN
@@ -99,51 +100,97 @@ async def test_bluetooth_discovery_rejects_non_xs_device(hass):
 
 
 # ---------------------------------------------------------------------------
-# Manual user flow
+# Manual user flow (scans for devices)
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
-async def test_user_flow_manual_address(hass):
-    """User can configure the integration by typing a MAC address."""
-    with flow_ctx(hass):
+async def test_user_flow_auto_selects_single_device(hass):
+    """When one device is discovered, it's auto-selected."""
+    discovery = make_bluetooth_service_info()
+
+    with flow_ctx(hass), patch(
+        "custom_components.rcxaz_air_quality.config_flow.async_discovered_service_info",
+        return_value=[discovery],
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": "user"},
+        )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["title"] == TEST_NAME
+    assert result["data"]["address"] == TEST_ADDRESS
+
+
+@pytest.mark.asyncio
+async def test_user_flow_shows_picker_for_multiple_devices(hass):
+    """When multiple devices are discovered, user picks one."""
+    dev1 = make_bluetooth_service_info(address="AA:BB:CC:DD:EE:01", name="XS-1111")
+    dev2 = make_bluetooth_service_info(address="AA:BB:CC:DD:EE:02", name="XS-2222")
+
+    with flow_ctx(hass), patch(
+        "custom_components.rcxaz_air_quality.config_flow.async_discovered_service_info",
+        return_value=[dev1, dev2],
+    ):
         result = await hass.config_entries.flow.async_init(
             DOMAIN,
             context={"source": "user"},
         )
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "user"
+    assert CONF_ADDRESS in result["data_schema"].schema
 
-    with flow_ctx(hass):
+    # Pick the first device
+    with flow_ctx(hass), patch(
+        "custom_components.rcxaz_air_quality.config_flow.async_discovered_service_info",
+        return_value=[dev1, dev2],
+    ):
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            user_input={"address": TEST_ADDRESS},
+            user_input={"address": "AA:BB:CC:DD:EE:01"},
         )
     assert result2["type"] == FlowResultType.CREATE_ENTRY
-    assert result2["title"] == f"RCXAZ Air Quality ({TEST_ADDRESS})"
-    assert result2["data"]["address"] == TEST_ADDRESS
+    assert result2["title"] == "XS-1111"
 
 
 @pytest.mark.asyncio
-async def test_user_flow_aborts_if_already_configured(hass):
-    """Duplicate manual entry is rejected."""
-    with flow_ctx(hass):
+async def test_user_flow_shows_error_when_no_devices(hass):
+    """When no devices are discovered, show a helpful error."""
+    with flow_ctx(hass), patch(
+        "custom_components.rcxaz_air_quality.config_flow.async_discovered_service_info",
+        return_value=[],
+    ):
         result = await hass.config_entries.flow.async_init(
             DOMAIN,
             context={"source": "user"},
         )
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            user_input={"address": TEST_ADDRESS},
-        )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "user"
+    assert result["errors"]["base"] == "no_devices_found"
 
-    with flow_ctx(hass):
+
+@pytest.mark.asyncio
+async def test_user_flow_aborts_if_already_configured(hass):
+    """Duplicate entry is rejected."""
+    discovery = make_bluetooth_service_info()
+
+    with flow_ctx(hass), patch(
+        "custom_components.rcxaz_air_quality.config_flow.async_discovered_service_info",
+        return_value=[discovery],
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": "user"},
+        )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+
+    # Second attempt should abort
+    with flow_ctx(hass), patch(
+        "custom_components.rcxaz_air_quality.config_flow.async_discovered_service_info",
+        return_value=[discovery],
+    ):
         result2 = await hass.config_entries.flow.async_init(
             DOMAIN,
             context={"source": "user"},
         )
-        result3 = await hass.config_entries.flow.async_configure(
-            result2["flow_id"],
-            user_input={"address": TEST_ADDRESS},
-        )
-    assert result3["type"] == FlowResultType.ABORT
-    assert result3["reason"] == "already_configured"
+    assert result2["type"] == FlowResultType.ABORT
+    assert result2["reason"] == "already_configured"

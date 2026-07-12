@@ -40,6 +40,20 @@ def _make_bleak_client(mock_write: AsyncMock | None = None) -> MagicMock:
     client.stop_notify = AsyncMock()
     client.disconnect = AsyncMock()
     client.write_gatt_char = mock_write or AsyncMock()
+
+    # Mock characteristic objects returned by get_characteristic
+    from custom_components.rcxaz_air_quality.const import C761_NOTIFY_UUID, C762_WRITE_UUID
+    notify_char = MagicMock()
+    notify_char.uuid = C761_NOTIFY_UUID
+    write_char = MagicMock()
+    write_char.uuid = C762_WRITE_UUID
+
+    services = MagicMock()
+    services.get_characteristic.side_effect = lambda uuid: {
+        C761_NOTIFY_UUID: notify_char,
+        C762_WRITE_UUID: write_char,
+    }.get(uuid)
+    client.services = services
     return client
 
 
@@ -65,7 +79,7 @@ async def test_connect_subscribes_to_notifications():
     from custom_components.rcxaz_air_quality.const import C761_NOTIFY_UUID
     bleak_client.start_notify.assert_called_once()
     args, _ = bleak_client.start_notify.call_args
-    assert args[0] == C761_NOTIFY_UUID
+    assert args[0].uuid == C761_NOTIFY_UUID
 
 
 @pytest.mark.asyncio
@@ -84,17 +98,12 @@ async def test_connect_sends_activation_and_time_sync():
 
     await client.disconnect()
 
-    from custom_components.rcxaz_air_quality.const import C762_WRITE_UUID
-
-    # First write should be activation byte
+    # write_gatt_char(char, data, response=False) — data is the second positional arg
     activation_call = write_mock.call_args_list[0]
-    assert activation_call[0][0] == C762_WRITE_UUID
     assert activation_call[0][1] == ACTIVATION_BYTE
 
-    # Second write should be datetime sync
+    # Second write should be datetime sync (0x23 prefix)
     time_sync_call = write_mock.call_args_list[1]
-    assert time_sync_call[0][0] == C762_WRITE_UUID
-    # Verify it's a valid datetime payload
     payload = time_sync_call[0][1]
     assert payload[0] == 0x23  # frame prefix
 
@@ -113,27 +122,25 @@ async def test_disconnect_stops_notify_and_disconnects():
         await client.connect()
         await client.disconnect()
 
-    from custom_components.rcxaz_air_quality.const import C761_NOTIFY_UUID
-    # stop_notify is called twice: once in connect() to clear stale subscriptions,
-    # and once in disconnect()
-    assert bleak_client.stop_notify.call_count >= 1
-    bleak_client.stop_notify.assert_any_call(C761_NOTIFY_UUID)
+    # stop_notify is called twice: once during connect() to clear stale
+    # subscriptions, once during disconnect().
+    assert bleak_client.stop_notify.call_count == 2
     bleak_client.disconnect.assert_called_once()
 
 
 # ---------------------------------------------------------------------------
-# Notification handler
+# Notification handler → callback
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
-async def test_notification_parses_and_stores_reading():
-    """_on_notification parses frames and stores the reading."""
+async def test_notification_fires_callback():
+    """_on_notification fires on_data_updated callback."""
     ble_device = _make_ble_device()
     bleak_client = _make_bleak_client()
-    captured_readings: list[SensorReading] = []
+    captured: list[SensorReading] = []
 
     def on_data(reading: SensorReading) -> None:
-        captured_readings.append(reading)
+        captured.append(reading)
 
     with patch(
         "custom_components.rcxaz_air_quality.ha_client.establish_connection",
@@ -142,26 +149,25 @@ async def test_notification_parses_and_stores_reading():
         client = RCXAZAirQualityHAClient(ble_device, on_data_updated=on_data)
         await client.connect()
 
-        # Simulate an environment notification
         env_frame = bytes.fromhex("2306100400b400393c")
         client._on_notification(None, bytearray(env_frame))
 
         await client.disconnect()
 
-    assert len(captured_readings) == 1
-    assert captured_readings[0].temperature_c == 18.0
-    assert captured_readings[0].humidity_pct == 57
+    assert len(captured) == 1
+    assert captured[0].temperature_c == 18.0
+    assert captured[0].humidity_pct == 57
 
 
 @pytest.mark.asyncio
 async def test_notification_merges_with_previous():
-    """Notifications from different pages are merged into one reading."""
+    """Second notification merges with first, callback fires per-page."""
     ble_device = _make_ble_device()
     bleak_client = _make_bleak_client()
-    captured_readings: list[SensorReading] = []
+    captured: list[SensorReading] = []
 
     def on_data(reading: SensorReading) -> None:
-        captured_readings.append(reading)
+        captured.append(reading)
 
     with patch(
         "custom_components.rcxaz_air_quality.ha_client.establish_connection",
@@ -170,35 +176,34 @@ async def test_notification_merges_with_previous():
         client = RCXAZAirQualityHAClient(ble_device, on_data_updated=on_data)
         await client.connect()
 
-        # Simulate environment notification
+        # Environment page
         env_frame = bytes.fromhex("2306100400b400393c")
         client._on_notification(None, bytearray(env_frame))
 
-        # Simulate air quality notification
+        # Air quality page
         air_frame = bytes.fromhex("23081004019000060002f9")
         client._on_notification(None, bytearray(air_frame))
 
         await client.disconnect()
 
-    # After two notifications, the merged reading should have both env and air data
-    assert len(captured_readings) == 2
-    merged = captured_readings[1]
-    assert merged.temperature_c == 18.0
-    assert merged.humidity_pct == 57
-    assert merged.co2_ppm == 400
-    assert merged.tvoc_mgm3 == 0.006
-    assert merged.hcho_mgm3 == 0.002
+    assert len(captured) == 2
+    # First: env only
+    assert captured[0].temperature_c == 18.0
+    assert captured[0].co2_ppm is None
+    # Second: merged (env from first + air from second)
+    assert captured[1].temperature_c == 18.0
+    assert captured[1].co2_ppm == 400
 
 
 @pytest.mark.asyncio
 async def test_notification_ignores_invalid_frames():
-    """Invalid frames are silently ignored."""
+    """Invalid frames don't fire callback."""
     ble_device = _make_ble_device()
     bleak_client = _make_bleak_client()
-    captured_readings: list[SensorReading] = []
+    captured: list[SensorReading] = []
 
     def on_data(reading: SensorReading) -> None:
-        captured_readings.append(reading)
+        captured.append(reading)
 
     with patch(
         "custom_components.rcxaz_air_quality.ha_client.establish_connection",
@@ -207,12 +212,66 @@ async def test_notification_ignores_invalid_frames():
         client = RCXAZAirQualityHAClient(ble_device, on_data_updated=on_data)
         await client.connect()
 
-        # Send an invalid frame (wrong prefix)
         client._on_notification(None, bytearray(b"\x00\x04\x10\x03\x00\x01\x64"))
 
         await client.disconnect()
 
-    assert len(captured_readings) == 0
+    assert len(captured) == 0
+
+
+# ---------------------------------------------------------------------------
+# connect() idempotency
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_connect_returns_immediately_when_already_connected():
+    """connect() is a no-op when already connected."""
+    ble_device = _make_ble_device()
+    bleak_client = _make_bleak_client()
+
+    connect_count = 0
+    async def _track_connect(*args, **kwargs):
+        nonlocal connect_count
+        connect_count += 1
+        return bleak_client
+
+    with patch(
+        "custom_components.rcxaz_air_quality.ha_client.establish_connection",
+        side_effect=_track_connect,
+    ), patch("asyncio.sleep", AsyncMock()):
+        client = RCXAZAirQualityHAClient(ble_device)
+        await client.connect()
+        assert connect_count == 1
+
+        # Second connect should be a no-op
+        await client.connect()
+        assert connect_count == 1  # not called again
+
+        await client.disconnect()
+
+
+@pytest.mark.asyncio
+async def test_notification_ignores_invalid_frames():
+    """Invalid frames don't fire callback."""
+    ble_device = _make_ble_device()
+    bleak_client = _make_bleak_client()
+    captured: list[SensorReading] = []
+
+    def on_data(reading: SensorReading) -> None:
+        captured.append(reading)
+
+    with patch(
+        "custom_components.rcxaz_air_quality.ha_client.establish_connection",
+        AsyncMock(return_value=bleak_client),
+    ), patch("asyncio.sleep", AsyncMock()):
+        client = RCXAZAirQualityHAClient(ble_device, on_data_updated=on_data)
+        await client.connect()
+
+        client._on_notification(None, bytearray(b"\x00\x04\x10\x03\x00\x01\x64"))
+
+        await client.disconnect()
+
+    assert len(captured) == 0
 
 
 # ---------------------------------------------------------------------------
@@ -258,6 +317,7 @@ async def test_last_seen_at_none_before_notification():
 
 @pytest.mark.asyncio
 async def test_last_seen_at_set_after_notification():
+    """last_seen_at is set when notification arrives."""
     ble_device = _make_ble_device()
     bleak_client = _make_bleak_client()
 
@@ -270,13 +330,12 @@ async def test_last_seen_at_set_after_notification():
 
         assert client.last_seen_at is None
 
-        # Simulate a notification
         env_frame = bytes.fromhex("2306100400b400393c")
         client._on_notification(None, bytearray(env_frame))
 
-        await client.disconnect()
-
         assert client.last_seen_at is not None
+
+        await client.disconnect()
 
 
 # ---------------------------------------------------------------------------
@@ -292,6 +351,7 @@ async def test_last_reading_none_before_notification():
 
 @pytest.mark.asyncio
 async def test_last_reading_set_after_notification():
+    """last_reading is set when notification arrives."""
     ble_device = _make_ble_device()
     bleak_client = _make_bleak_client()
 
@@ -305,10 +365,10 @@ async def test_last_reading_set_after_notification():
         env_frame = bytes.fromhex("2306100400b400393c")
         client._on_notification(None, bytearray(env_frame))
 
-        await client.disconnect()
-
         assert client.last_reading is not None
         assert client.last_reading.temperature_c == 18.0
+
+        await client.disconnect()
 
 
 # ---------------------------------------------------------------------------

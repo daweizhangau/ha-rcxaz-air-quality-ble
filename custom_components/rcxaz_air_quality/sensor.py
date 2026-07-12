@@ -41,7 +41,6 @@ from .const import (
     SUFFIX_TVOC,
 )
 from .coordinator import RCXAZAirQualityCoordinator
-from .protocol import SensorReading
 
 
 async def async_setup_entry(
@@ -105,6 +104,8 @@ class TemperatureSensor(RCXAZAirQualitySensor):
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_suggested_display_precision = 1
+    _attr_name = "Temperature"
+    _attr_icon = "mdi:thermometer"
 
     def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_TEMPERATURE)
@@ -122,6 +123,8 @@ class HumiditySensor(RCXAZAirQualitySensor):
     _attr_device_class = SensorDeviceClass.HUMIDITY
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_name = "Humidity"
+    _attr_icon = "mdi:water-percent"
 
     def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_HUMIDITY)
@@ -139,6 +142,8 @@ class CO2Sensor(RCXAZAirQualitySensor):
     _attr_device_class = SensorDeviceClass.CO2
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = CONCENTRATION_PARTS_PER_MILLION
+    _attr_name = "CO₂"
+    _attr_icon = "mdi:molecule-co2"
 
     def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_CO2)
@@ -157,6 +162,8 @@ class TVOCSensor(RCXAZAirQualitySensor):
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER
     _attr_suggested_display_precision = 3
+    _attr_name = "TVOC"
+    _attr_icon = "mdi:air-filter"
 
     def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_TVOC)
@@ -171,10 +178,11 @@ class TVOCSensor(RCXAZAirQualitySensor):
 class HCHOSensor(RCXAZAirQualitySensor):
     """HCHO (formaldehyde) sensor."""
 
-    _attr_device_class = SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER
     _attr_suggested_display_precision = 3
+    _attr_name = "HCHO"
+    _attr_icon = "mdi:chemical-weapon"
 
     def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_HCHO)
@@ -192,6 +200,8 @@ class PM1_0Sensor(RCXAZAirQualitySensor):
     _attr_device_class = SensorDeviceClass.PM1
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+    _attr_name = "PM1.0"
+    _attr_icon = "mdi:blur"
 
     def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_PM1_0)
@@ -209,6 +219,8 @@ class PM2_5Sensor(RCXAZAirQualitySensor):
     _attr_device_class = SensorDeviceClass.PM25
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+    _attr_name = "PM2.5"
+    _attr_icon = "mdi:blur"
 
     def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_PM2_5)
@@ -226,6 +238,8 @@ class PM10Sensor(RCXAZAirQualitySensor):
     _attr_device_class = SensorDeviceClass.PM10
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+    _attr_name = "PM10"
+    _attr_icon = "mdi:blur"
 
     def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_PM10)
@@ -249,6 +263,8 @@ class ConnectionStatusSensor(RCXAZAirQualitySensor):
         CONN_STATUS_CONNECTING,
         CONN_STATUS_DISCONNECTED,
     ]
+    _attr_name = "Connection Status"
+    _attr_icon = "mdi:bluetooth-connect"
 
     def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_CONNECTION_STATUS)
@@ -259,7 +275,7 @@ class ConnectionStatusSensor(RCXAZAirQualitySensor):
             return CONN_STATUS_DISCONNECTED
         if self.coordinator._client is None:
             return CONN_STATUS_DISCONNECTED
-        return self.coordinator._client.connection_status
+        return self.coordinator.client.connection_status
 
 
 class RSSISensor(RCXAZAirQualitySensor):
@@ -269,6 +285,8 @@ class RSSISensor(RCXAZAirQualitySensor):
     _attr_device_class = SensorDeviceClass.SIGNAL_STRENGTH
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = SIGNAL_STRENGTH_DECIBELS_MILLIWATT
+    _attr_name = "RSSI"
+    _attr_icon = "mdi:bluetooth"
 
     def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_RSSI)
@@ -283,6 +301,8 @@ class LastSeenSensor(RCXAZAirQualitySensor):
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_name = "Last Seen"
+    _attr_icon = "mdi:clock-check-outline"
 
     def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_LAST_SEEN)
@@ -291,4 +311,4 @@ class LastSeenSensor(RCXAZAirQualitySensor):
     def native_value(self) -> datetime | None:
         if self.coordinator._client is None:
             return None
-        return self.coordinator._client.last_seen_at
+        return self.coordinator.client.last_seen_at

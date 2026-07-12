@@ -37,6 +37,9 @@ from tests.ha.conftest import (
 def _make_coordinator(reading=SAMPLE_MERGED_READING, mock_client=None):
     coord = MagicMock(spec=RCXAZAirQualityCoordinator)
     coord.data = reading
+    # The `client` property does `assert self._client is not None`, so
+    # we patch both the property and the underlying `_client` attribute.
+    type(coord).client = property(fget=lambda s: mock_client)
     coord._client = mock_client
     return coord
 

@@ -1,4 +1,4 @@
-<img src="img/device_2co11.png" width="180" align="right" style="margin-left: 16px" alt="RCXAZ Air Quality Detector">
+
 
 # RCXAZ Air Quality Detector — Home Assistant Integration
 
@@ -6,9 +6,25 @@
 
 A [HACS](https://hacs.xyz) custom integration that brings the **RCXAZ Air Quality Detector** into Home Assistant. It uses HA's native Bluetooth APIs, so both the built-in adapter **and** [ESPHome Bluetooth proxies](https://esphome.io/components/bluetooth_proxy.html) work out of the box.
 
-The device measures temperature, humidity, CO₂, TVOC, formaldehyde (HCHO), and particulate matter (PM1.0, PM2.5, PM10), pushing data via BLE notifications at ~1 Hz.
 
-<br clear="right">
+
+<div style="display: flex; align-items: center; gap: 24px;">
+   <div style="flex: 1;">
+      <p>The device measures temperature, humidity, CO₂, TVOC, formaldehyde (HCHO), and particulate matter (PM1.0, PM2.5, PM10), pushing data via BLE notifications at ~1 Hz.</p>
+   </div>
+   <div>
+      <img src="img/device_2co11.png" width="280" alt="RCXAZ Air Quality Detector">
+   </div>
+</div>
+
+<div style="display: flex; align-items: center; gap: 24px;">
+   <div style="flex: 1;">
+      <p>Home Assistant integration showing sensor entities for the RCXAZ Air Quality Detector.</p>
+   </div>
+   <div>
+      <img src="img/ha_screenshot.png" width="480" alt="RCXAZ Air Quality Detector">
+   </div>
+</div>
 
 ---
 
@@ -32,7 +48,7 @@ The device measures temperature, humidity, CO₂, TVOC, formaldehyde (HCHO), and
 
 ## Requirements
 
-- Home Assistant 2024.1 or later
+- Home Assistant 2024.1 or later (tested on 2026.6.3)
 - A Bluetooth adapter accessible to HA (built-in, USB dongle, or [ESPHome Bluetooth proxy](https://esphome.io/components/bluetooth_proxy/))
 - RCXAZ Air Quality Detector (model 2CO11), powered on with Bluetooth enabled
 
