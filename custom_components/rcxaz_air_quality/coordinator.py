@@ -1,4 +1,4 @@
-"""Coordinator for the XS Air Quality Detector.
+"""Coordinator for the RCXAZ Air Quality Detector.
 
 Unlike a poll-based coordinator, this one listens for data updates from the
 BLE client's notification handler and pushes them to HA entities immediately
@@ -22,7 +22,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import DOMAIN
-from .ha_client import XSAirQualityHAClient
+from .ha_client import RCXAZAirQualityHAClient
 from .protocol import SensorReading
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,8 +31,8 @@ _LOGGER = logging.getLogger(__name__)
 HEALTH_CHECK_INTERVAL = 60.0
 
 
-class XSAirQualityCoordinator(DataUpdateCoordinator[SensorReading]):
-    """Coordinator for the XS Air Quality Detector.
+class RCXAZAirQualityCoordinator(DataUpdateCoordinator[SensorReading]):
+    """Coordinator for the RCXAZ Air Quality Detector.
 
     Data arrives via BLE notifications — the coordinator subscribes to the
     client's ``on_data_updated`` callback and calls ``async_set_updated_data``
@@ -50,7 +50,7 @@ class XSAirQualityCoordinator(DataUpdateCoordinator[SensorReading]):
             update_interval=timedelta(seconds=HEALTH_CHECK_INTERVAL),
         )
         self.config_entry = entry
-        self._client: Optional[XSAirQualityHAClient] = None
+        self._client: Optional[RCXAZAirQualityHAClient] = None
         self._unsub_status_changed: Optional[callable] = None
 
     # ── Lifecycle ──────────────────────────────────────────────────────────────
@@ -62,7 +62,7 @@ class XSAirQualityCoordinator(DataUpdateCoordinator[SensorReading]):
             _LOGGER.warning("Device not available in Bluetooth registry yet")
             return
 
-        self._client = XSAirQualityHAClient(
+        self._client = RCXAZAirQualityHAClient(
             ble_device=ble_device,
             ble_device_callback=self._get_ble_device,
             on_data_updated=self._on_client_data_updated,
@@ -72,7 +72,7 @@ class XSAirQualityCoordinator(DataUpdateCoordinator[SensorReading]):
         try:
             await self._client.connect()
         except Exception:
-            _LOGGER.exception("Failed to connect to XS Air Quality Detector")
+            _LOGGER.exception("Failed to connect to RCXAZ Air Quality Detector")
 
     async def async_shutdown(self) -> None:
         """Disconnect and clean up."""

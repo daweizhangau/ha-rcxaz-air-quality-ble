@@ -1,4 +1,4 @@
-"""Config flow for the XS Air Quality Detector integration."""
+"""Config flow for the RCXAZ Air Quality Detector integration."""
 from __future__ import annotations
 
 import logging
@@ -20,8 +20,8 @@ def _device_name_from_discovery(discovery_info: BluetoothServiceInfoBleak) -> st
     return discovery_info.name or discovery_info.address
 
 
-def _is_xs_device(discovery_info: BluetoothServiceInfoBleak) -> bool:
-    """Check if the discovered device is an XS Air Quality Detector.
+def _is_rcxaz_device(discovery_info: BluetoothServiceInfoBleak) -> bool:
+    """Check if the discovered device is an RCXAZ Air Quality Detector.
 
     Matches by:
     1. Name starts with 'XS-' (case-insensitive)
@@ -35,8 +35,8 @@ def _is_xs_device(discovery_info: BluetoothServiceInfoBleak) -> bool:
     return name_match and uuid_match
 
 
-class XSAirQualityConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle discovery and manual configuration of the XS Air Quality Detector."""
+class RCXAZAirQualityConfigFlow(ConfigFlow, domain=DOMAIN):
+    """Handle discovery and manual configuration of the RCXAZ Air Quality Detector."""
 
     VERSION = 1
 
@@ -49,7 +49,7 @@ class XSAirQualityConfigFlow(ConfigFlow, domain=DOMAIN):
         self, discovery_info: BluetoothServiceInfoBleak
     ) -> FlowResult:
         """Handle discovery via HA's Bluetooth integration."""
-        if not _is_xs_device(discovery_info):
+        if not _is_rcxaz_device(discovery_info):
             return self.async_abort(reason="not_supported")
 
         await self.async_set_unique_id(discovery_info.address)
@@ -91,7 +91,7 @@ class XSAirQualityConfigFlow(ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(address)
             self._abort_if_unique_id_configured()
             return self.async_create_entry(
-                title=f"XS Air Quality ({address})",
+                title=f"RCXAZ Air Quality ({address})",
                 data={CONF_ADDRESS: address},
             )
 

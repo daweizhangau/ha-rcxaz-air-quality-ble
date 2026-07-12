@@ -8,12 +8,12 @@ This document is for contributors and developers. For user installation instruct
 
 | Path | Purpose |
 |------|---------|
-| `custom_components/xs_air_quality/` | The HACS component — install this in HA |
+| `custom_components/rcxaz_air_quality/` | The HACS component — install this in HA |
 | `tests/` | Unit tests (BLE fully mocked — no hardware needed) |
 | `img/` | Device images |
 | `.github/workflows/` | CI — runs unit tests on every push / PR |
 
-Key source files in `custom_components/xs_air_quality/`:
+Key source files in `custom_components/rcxaz_air_quality/`:
 
 | File | Purpose |
 |------|---------|
@@ -34,7 +34,7 @@ Requires [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or Anaconda
 ```bash
 # Create and activate the conda environment
 conda env create -f environment_ha.yml
-conda activate ha-xs-air-quality
+conda activate ha-rcxaz-air-quality-ble
 
 # Run all unit tests (no hardware required — BLE is fully mocked)
 pytest tests/ -v
@@ -46,7 +46,7 @@ The CI workflow (`.github/workflows/tests.yml`) runs the same command on every p
 
 ## Protocol notes
 
-The XS Air Quality Detector communicates over BLE GATT:
+The RCXAZ Air Quality Detector communicates over BLE GATT:
 
 | UUID | Role |
 |---|---|
@@ -95,7 +95,7 @@ The XS Air Quality Detector communicates over BLE GATT:
 Live tests connect directly to the physical device via the system Bluetooth stack. These are excluded from normal runs and CI — opt in explicitly:
 
 ```bash
-conda activate ha-xs-air-quality
+conda activate ha-rcxaz-air-quality-ble
 
 # Requires the detector to be powered on with Bluetooth enabled
 pytest -m live --live -v

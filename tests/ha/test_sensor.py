@@ -8,9 +8,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from custom_components.xs_air_quality.coordinator import XSAirQualityCoordinator
-from custom_components.xs_air_quality.protocol import SensorReading
-from custom_components.xs_air_quality.sensor import (
+from custom_components.rcxaz_air_quality.coordinator import RCXAZAirQualityCoordinator
+from custom_components.rcxaz_air_quality.protocol import SensorReading
+from custom_components.rcxaz_air_quality.sensor import (
     CO2Sensor,
     ConnectionStatusSensor,
     HCHOSensor,
@@ -35,7 +35,7 @@ from tests.ha.conftest import (
 # ---------------------------------------------------------------------------
 
 def _make_coordinator(reading=SAMPLE_MERGED_READING, mock_client=None):
-    coord = MagicMock(spec=XSAirQualityCoordinator)
+    coord = MagicMock(spec=RCXAZAirQualityCoordinator)
     coord.data = reading
     coord._client = mock_client
     return coord

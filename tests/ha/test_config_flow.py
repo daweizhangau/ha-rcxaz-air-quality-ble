@@ -1,4 +1,4 @@
-"""Tests for the XS Air Quality Detector config flow.
+"""Tests for the RCXAZ Air Quality Detector config flow.
 
 These tests run entirely without a real Bluetooth device or HA instance by
 using the ``hass`` fixture from ``pytest-homeassistant-custom-component`` and
@@ -12,7 +12,7 @@ import pytest
 from homeassistant.components.bluetooth import BluetoothServiceInfoBleak
 from homeassistant.data_entry_flow import FlowResultType
 
-from custom_components.xs_air_quality.const import C760_SERVICE_UUID, DOMAIN
+from custom_components.rcxaz_air_quality.const import C760_SERVICE_UUID, DOMAIN
 from tests.ha.conftest import (
     TEST_ADDRESS,
     TEST_NAME,
@@ -119,7 +119,7 @@ async def test_user_flow_manual_address(hass):
             user_input={"address": TEST_ADDRESS},
         )
     assert result2["type"] == FlowResultType.CREATE_ENTRY
-    assert result2["title"] == f"XS Air Quality ({TEST_ADDRESS})"
+    assert result2["title"] == f"RCXAZ Air Quality ({TEST_ADDRESS})"
     assert result2["data"]["address"] == TEST_ADDRESS
 
 

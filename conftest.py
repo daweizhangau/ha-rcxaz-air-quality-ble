@@ -7,7 +7,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--live",
         action="store_true",
         default=False,
-        help="Run live BLE hardware tests (requires the physical XS Air Quality Detector).",
+        help="Run live BLE hardware tests (requires the physical RCXAZ Air Quality Detector).",
     )
 
 

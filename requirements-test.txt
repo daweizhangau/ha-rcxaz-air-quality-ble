@@ -1,4 +1,4 @@
-# Test dependencies for the xs_air_quality HA integration.
+# Test dependencies for the rcxaz_air_quality HA integration.
 
 # HA test harness — pulls in homeassistant core as a test dependency
 pytest-homeassistant-custom-component>=0.13.0

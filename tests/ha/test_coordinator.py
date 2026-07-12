@@ -1,4 +1,4 @@
-"""Tests for XSAirQualityCoordinator.
+"""Tests for RCXAZAirQualityCoordinator.
 
 All BLE I/O and HA Bluetooth lookups are mocked — no hardware required.
 """
@@ -8,9 +8,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.xs_air_quality.const import DOMAIN
-from custom_components.xs_air_quality.coordinator import XSAirQualityCoordinator
-from custom_components.xs_air_quality.protocol import SensorReading
+from custom_components.rcxaz_air_quality.const import DOMAIN
+from custom_components.rcxaz_air_quality.coordinator import RCXAZAirQualityCoordinator
+from custom_components.rcxaz_air_quality.protocol import SensorReading
 from tests.ha.conftest import (
     SAMPLE_ENV_READING,
     SAMPLE_MERGED_READING,
@@ -34,10 +34,10 @@ async def test_coordinator_setup_creates_client(hass, mock_ble_device, mock_ha_c
     entry = _make_entry()
 
     with patch(
-        "custom_components.xs_air_quality.coordinator.XSAirQualityHAClient",
+        "custom_components.rcxaz_air_quality.coordinator.RCXAZAirQualityHAClient",
         return_value=mock_ha_client,
     ):
-        coordinator = XSAirQualityCoordinator(hass, entry)
+        coordinator = RCXAZAirQualityCoordinator(hass, entry)
         await coordinator.async_setup()
 
     assert coordinator._client is not None
@@ -50,10 +50,10 @@ async def test_coordinator_data_updated_via_callback(hass, mock_ble_device, mock
     entry = _make_entry()
 
     with patch(
-        "custom_components.xs_air_quality.coordinator.XSAirQualityHAClient",
+        "custom_components.rcxaz_air_quality.coordinator.RCXAZAirQualityHAClient",
         return_value=mock_ha_client,
     ):
-        coordinator = XSAirQualityCoordinator(hass, entry)
+        coordinator = RCXAZAirQualityCoordinator(hass, entry)
         await coordinator.async_setup()
 
     # Initially no data
@@ -73,10 +73,10 @@ async def test_coordinator_shutdown_disconnects_client(hass, mock_ble_device, mo
     entry = _make_entry()
 
     with patch(
-        "custom_components.xs_air_quality.coordinator.XSAirQualityHAClient",
+        "custom_components.rcxaz_air_quality.coordinator.RCXAZAirQualityHAClient",
         return_value=mock_ha_client,
     ):
-        coordinator = XSAirQualityCoordinator(hass, entry)
+        coordinator = RCXAZAirQualityCoordinator(hass, entry)
         await coordinator.async_setup()
         await coordinator.async_shutdown()
 
@@ -90,10 +90,10 @@ async def test_coordinator_async_update_data_returns_reading(hass, mock_ble_devi
     entry = _make_entry()
 
     with patch(
-        "custom_components.xs_air_quality.coordinator.XSAirQualityHAClient",
+        "custom_components.rcxaz_air_quality.coordinator.RCXAZAirQualityHAClient",
         return_value=mock_ha_client,
     ):
-        coordinator = XSAirQualityCoordinator(hass, entry)
+        coordinator = RCXAZAirQualityCoordinator(hass, entry)
         await coordinator.async_setup()
 
     result = await coordinator._async_update_data()
@@ -106,10 +106,10 @@ async def test_coordinator_get_rssi(hass, mock_ble_device, mock_ha_client, mock_
     entry = _make_entry()
 
     with patch(
-        "custom_components.xs_air_quality.coordinator.XSAirQualityHAClient",
+        "custom_components.rcxaz_air_quality.coordinator.RCXAZAirQualityHAClient",
         return_value=mock_ha_client,
     ):
-        coordinator = XSAirQualityCoordinator(hass, entry)
+        coordinator = RCXAZAirQualityCoordinator(hass, entry)
         await coordinator.async_setup()
 
     rssi = coordinator.get_rssi()

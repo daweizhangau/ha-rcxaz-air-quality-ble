@@ -1,4 +1,4 @@
-"""Pure protocol logic for the XS- air quality detector.
+"""Pure protocol logic for the RCXAZ air quality detector.
 
 All functions here are free of I/O and fully unit-testable without hardware.
 
@@ -52,7 +52,7 @@ def compute_checksum(frame: bytes) -> int:
 
 @dataclass(frozen=True)
 class SensorReading:
-    """A single parsed measurement from the XS- air quality detector.
+    """A single parsed measurement from the RCXAZ air quality detector.
 
     All sensor fields default to None when not present in the frame.
     """

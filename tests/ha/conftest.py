@@ -15,10 +15,10 @@ from bleak.backends.device import BLEDevice
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import mock_config_flow
 
-import custom_components.xs_air_quality.config_flow as _cf_module
-from custom_components.xs_air_quality.config_flow import XSAirQualityConfigFlow
-from custom_components.xs_air_quality.const import C760_SERVICE_UUID, DOMAIN
-from custom_components.xs_air_quality.protocol import SensorReading
+import custom_components.rcxaz_air_quality.config_flow as _cf_module
+from custom_components.rcxaz_air_quality.config_flow import RCXAZAirQualityConfigFlow
+from custom_components.rcxaz_air_quality.const import C760_SERVICE_UUID, DOMAIN
+from custom_components.rcxaz_air_quality.protocol import SensorReading
 
 # ---------------------------------------------------------------------------
 # Sample readings
@@ -74,12 +74,12 @@ def mock_ble_device() -> BLEDevice:
 
 
 # ---------------------------------------------------------------------------
-# XSAirQualityHAClient stub
+# RCXAZAirQualityHAClient stub
 # ---------------------------------------------------------------------------
 
 @pytest.fixture
 def mock_ha_client(mock_ble_device: BLEDevice) -> AsyncMock:
-    """Return an AsyncMock that replaces XSAirQualityHAClient."""
+    """Return an AsyncMock that replaces RCXAZAirQualityHAClient."""
     client = AsyncMock()
     client.is_connected      = True
     client.connection_status = "Connected"
@@ -102,11 +102,11 @@ def mock_bluetooth(mock_ble_device: BLEDevice):
     service_info.rssi = -72
     with (
         patch(
-            "custom_components.xs_air_quality.coordinator.bluetooth.async_ble_device_from_address",
+            "custom_components.rcxaz_air_quality.coordinator.bluetooth.async_ble_device_from_address",
             return_value=mock_ble_device,
         ),
         patch(
-            "custom_components.xs_air_quality.coordinator.bluetooth.async_last_service_info",
+            "custom_components.rcxaz_air_quality.coordinator.bluetooth.async_last_service_info",
             return_value=service_info,
         ),
     ):
@@ -119,23 +119,23 @@ def mock_bluetooth(mock_ble_device: BLEDevice):
 
 @contextmanager
 def flow_ctx(hass: HomeAssistant) -> Iterator[None]:
-    """Context manager that makes the xs_air_quality config flow findable by HA's loader."""
+    """Context manager that makes the rcxaz_air_quality config flow findable by HA's loader."""
     if not hasattr(hass, 'data'):
         # In some test harness versions, hass is passed as an async generator
         # that hasn't been fully resolved yet. Do nothing in that case.
-        with mock_config_flow(DOMAIN, XSAirQualityConfigFlow), patch(
+        with mock_config_flow(DOMAIN, RCXAZAirQualityConfigFlow), patch(
             "homeassistant.config_entries._support_single_config_entry_only",
             return_value=False,
         ):
             yield
         return
-    hass.data.setdefault("components", {})["xs_air_quality.config_flow"] = _cf_module
-    with mock_config_flow(DOMAIN, XSAirQualityConfigFlow), patch(
+    hass.data.setdefault("components", {})["rcxaz_air_quality.config_flow"] = _cf_module
+    with mock_config_flow(DOMAIN, RCXAZAirQualityConfigFlow), patch(
         "homeassistant.config_entries._support_single_config_entry_only",
         return_value=False,
     ):
         yield
-    hass.data["components"].pop("xs_air_quality.config_flow", None)
+    hass.data["components"].pop("rcxaz_air_quality.config_flow", None)
 
 
 def make_bluetooth_service_info(

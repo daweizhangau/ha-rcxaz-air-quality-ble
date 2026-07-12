@@ -1,10 +1,10 @@
 {
-  "domain": "xs_air_quality",
-  "name": "XS Air Quality Detector",
+  "domain": "rcxaz_air_quality",
+  "name": "RCXAZ Air Quality Detector",
   "codeowners": ["@daweizhangau"],
   "config_flow": true,
   "dependencies": ["bluetooth"],
-  "documentation": "https://github.com/daweizhangau/ha-xs-air-quality",
+  "documentation": "https://github.com/daweizhangau/ha-rcxaz-air-quality-ble",
   "integration_type": "device",
   "iot_class": "local_push",
   "requirements": ["bleak-retry-connector>=3.0.0"],

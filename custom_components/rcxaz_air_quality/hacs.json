@@ -1,6 +1,6 @@
 {
-  "name": "XS Air Quality Detector",
-  "filename": "xs_air_quality.zip",
+  "name": "RCXAZ Air Quality Detector",
+  "filename": "rcxaz_air_quality.zip",
   "hide_default_branch": true,
   "homeassistant": "2024.1.0",
   "render_readme": true,

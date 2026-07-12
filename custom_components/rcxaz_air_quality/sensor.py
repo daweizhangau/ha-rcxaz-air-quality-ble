@@ -1,4 +1,4 @@
-"""Sensor entities for the XS Air Quality Detector."""
+"""Sensor entities for the RCXAZ Air Quality Detector."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -40,7 +40,7 @@ from .const import (
     SUFFIX_TEMPERATURE,
     SUFFIX_TVOC,
 )
-from .coordinator import XSAirQualityCoordinator
+from .coordinator import RCXAZAirQualityCoordinator
 from .protocol import SensorReading
 
 
@@ -49,8 +49,8 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up XS Air Quality sensor entities."""
-    coordinator: XSAirQualityCoordinator = hass.data[DOMAIN][entry.entry_id]
+    """Set up RCXAZ Air Quality sensor entities."""
+    coordinator: RCXAZAirQualityCoordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities([
         TemperatureSensor(coordinator, entry),
         HumiditySensor(coordinator, entry),
@@ -68,14 +68,14 @@ async def async_setup_entry(
 
 # ── Base class ─────────────────────────────────────────────────────────────────
 
-class XSAirQualitySensor(CoordinatorEntity[XSAirQualityCoordinator], SensorEntity):
-    """Base sensor for the XS Air Quality Detector."""
+class RCXAZAirQualitySensor(CoordinatorEntity[RCXAZAirQualityCoordinator], SensorEntity):
+    """Base sensor for the RCXAZ Air Quality Detector."""
 
     _attr_has_entity_name = True
 
     def __init__(
         self,
-        coordinator: XSAirQualityCoordinator,
+        coordinator: RCXAZAirQualityCoordinator,
         entry: ConfigEntry,
         suffix: str,
     ) -> None:
@@ -84,7 +84,7 @@ class XSAirQualitySensor(CoordinatorEntity[XSAirQualityCoordinator], SensorEntit
         self._attr_unique_id = f"{entry.unique_id}_{suffix}"
         self._attr_device_info = DeviceInfo(
             connections={(CONNECTION_BLUETOOTH, entry.unique_id)},
-            manufacturer="Shenzhen XS Technology",
+            manufacturer="Nobito (Shenzhen) Technology Co., LTD",
             model="2CO11",
             name=entry.title,
             sw_version="1.0",
@@ -98,7 +98,7 @@ class XSAirQualitySensor(CoordinatorEntity[XSAirQualityCoordinator], SensorEntit
 
 # ── Sensor implementations ─────────────────────────────────────────────────────
 
-class TemperatureSensor(XSAirQualitySensor):
+class TemperatureSensor(RCXAZAirQualitySensor):
     """Temperature sensor."""
 
     _attr_device_class = SensorDeviceClass.TEMPERATURE
@@ -106,7 +106,7 @@ class TemperatureSensor(XSAirQualitySensor):
     _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_suggested_display_precision = 1
 
-    def __init__(self, coordinator: XSAirQualityCoordinator, entry: ConfigEntry) -> None:
+    def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_TEMPERATURE)
 
     @property
@@ -116,14 +116,14 @@ class TemperatureSensor(XSAirQualitySensor):
         return self.coordinator.data.temperature_c
 
 
-class HumiditySensor(XSAirQualitySensor):
+class HumiditySensor(RCXAZAirQualitySensor):
     """Humidity sensor."""
 
     _attr_device_class = SensorDeviceClass.HUMIDITY
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = PERCENTAGE
 
-    def __init__(self, coordinator: XSAirQualityCoordinator, entry: ConfigEntry) -> None:
+    def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_HUMIDITY)
 
     @property
@@ -133,14 +133,14 @@ class HumiditySensor(XSAirQualitySensor):
         return self.coordinator.data.humidity_pct
 
 
-class CO2Sensor(XSAirQualitySensor):
+class CO2Sensor(RCXAZAirQualitySensor):
     """CO₂ sensor."""
 
     _attr_device_class = SensorDeviceClass.CO2
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = CONCENTRATION_PARTS_PER_MILLION
 
-    def __init__(self, coordinator: XSAirQualityCoordinator, entry: ConfigEntry) -> None:
+    def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_CO2)
 
     @property
@@ -150,7 +150,7 @@ class CO2Sensor(XSAirQualitySensor):
         return self.coordinator.data.co2_ppm
 
 
-class TVOCSensor(XSAirQualitySensor):
+class TVOCSensor(RCXAZAirQualitySensor):
     """TVOC sensor (Total Volatile Organic Compounds)."""
 
     _attr_device_class = SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS
@@ -158,7 +158,7 @@ class TVOCSensor(XSAirQualitySensor):
     _attr_native_unit_of_measurement = CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER
     _attr_suggested_display_precision = 3
 
-    def __init__(self, coordinator: XSAirQualityCoordinator, entry: ConfigEntry) -> None:
+    def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_TVOC)
 
     @property
@@ -168,7 +168,7 @@ class TVOCSensor(XSAirQualitySensor):
         return self.coordinator.data.tvoc_mgm3
 
 
-class HCHOSensor(XSAirQualitySensor):
+class HCHOSensor(RCXAZAirQualitySensor):
     """HCHO (formaldehyde) sensor."""
 
     _attr_device_class = SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS
@@ -176,7 +176,7 @@ class HCHOSensor(XSAirQualitySensor):
     _attr_native_unit_of_measurement = CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER
     _attr_suggested_display_precision = 3
 
-    def __init__(self, coordinator: XSAirQualityCoordinator, entry: ConfigEntry) -> None:
+    def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_HCHO)
 
     @property
@@ -186,14 +186,14 @@ class HCHOSensor(XSAirQualitySensor):
         return self.coordinator.data.hcho_mgm3
 
 
-class PM1_0Sensor(XSAirQualitySensor):
+class PM1_0Sensor(RCXAZAirQualitySensor):
     """PM1.0 particulate sensor."""
 
     _attr_device_class = SensorDeviceClass.PM1
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
 
-    def __init__(self, coordinator: XSAirQualityCoordinator, entry: ConfigEntry) -> None:
+    def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_PM1_0)
 
     @property
@@ -203,14 +203,14 @@ class PM1_0Sensor(XSAirQualitySensor):
         return self.coordinator.data.pm1_0
 
 
-class PM2_5Sensor(XSAirQualitySensor):
+class PM2_5Sensor(RCXAZAirQualitySensor):
     """PM2.5 particulate sensor."""
 
     _attr_device_class = SensorDeviceClass.PM25
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
 
-    def __init__(self, coordinator: XSAirQualityCoordinator, entry: ConfigEntry) -> None:
+    def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_PM2_5)
 
     @property
@@ -220,14 +220,14 @@ class PM2_5Sensor(XSAirQualitySensor):
         return self.coordinator.data.pm2_5
 
 
-class PM10Sensor(XSAirQualitySensor):
+class PM10Sensor(RCXAZAirQualitySensor):
     """PM10 particulate sensor."""
 
     _attr_device_class = SensorDeviceClass.PM10
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
 
-    def __init__(self, coordinator: XSAirQualityCoordinator, entry: ConfigEntry) -> None:
+    def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_PM10)
 
     @property
@@ -239,7 +239,7 @@ class PM10Sensor(XSAirQualitySensor):
 
 # ── Diagnostic sensors ─────────────────────────────────────────────────────────
 
-class ConnectionStatusSensor(XSAirQualitySensor):
+class ConnectionStatusSensor(RCXAZAirQualitySensor):
     """BLE connection state: Connected / Connecting / Disconnected."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -250,7 +250,7 @@ class ConnectionStatusSensor(XSAirQualitySensor):
         CONN_STATUS_DISCONNECTED,
     ]
 
-    def __init__(self, coordinator: XSAirQualityCoordinator, entry: ConfigEntry) -> None:
+    def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_CONNECTION_STATUS)
 
     @property
@@ -262,7 +262,7 @@ class ConnectionStatusSensor(XSAirQualitySensor):
         return self.coordinator._client.connection_status
 
 
-class RSSISensor(XSAirQualitySensor):
+class RSSISensor(RCXAZAirQualitySensor):
     """Last known Bluetooth signal strength in dBm."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -270,7 +270,7 @@ class RSSISensor(XSAirQualitySensor):
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = SIGNAL_STRENGTH_DECIBELS_MILLIWATT
 
-    def __init__(self, coordinator: XSAirQualityCoordinator, entry: ConfigEntry) -> None:
+    def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_RSSI)
 
     @property
@@ -278,13 +278,13 @@ class RSSISensor(XSAirQualitySensor):
         return self.coordinator.get_rssi()
 
 
-class LastSeenSensor(XSAirQualitySensor):
+class LastSeenSensor(RCXAZAirQualitySensor):
     """UTC timestamp of the most recent successful reading."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_device_class = SensorDeviceClass.TIMESTAMP
 
-    def __init__(self, coordinator: XSAirQualityCoordinator, entry: ConfigEntry) -> None:
+    def __init__(self, coordinator: RCXAZAirQualityCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry, SUFFIX_LAST_SEEN)
 
     @property

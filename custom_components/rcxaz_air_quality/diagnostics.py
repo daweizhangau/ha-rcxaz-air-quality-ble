@@ -1,4 +1,4 @@
-"""Diagnostics support for the XS Air Quality Detector integration."""
+"""Diagnostics support for the RCXAZ Air Quality Detector integration."""
 from __future__ import annotations
 
 from typing import Any

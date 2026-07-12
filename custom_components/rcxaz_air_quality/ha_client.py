@@ -1,4 +1,4 @@
-"""HA-native BLE client for the XS Air Quality Detector.
+"""HA-native BLE client for the RCXAZ Air Quality Detector.
 
 Uses Home Assistant's Bluetooth integration APIs so that both the built-in
 Bluetooth adapter and ESPHome Bluetooth proxies are transparently supported.
@@ -49,8 +49,8 @@ class DeviceNotAvailableError(Exception):
     """
 
 
-class XSAirQualityHAClient:
-    """Notification-driven BLE client for the XS Air Quality Detector.
+class RCXAZAirQualityHAClient:
+    """Notification-driven BLE client for the RCXAZ Air Quality Detector.
 
     The device pushes sensor data autonomously after activation. This client
     subscribes to notifications, parses incoming frames, and notifies HA via
@@ -215,7 +215,7 @@ class XSAirQualityHAClient:
             _LOGGER.debug("Disconnect during connect phase — establish_connection will retry")
             return
         self._disconnect_time = time.monotonic()
-        _LOGGER.warning("XS Air Quality disconnected unexpectedly — coordinator will reconnect")
+        _LOGGER.warning("RCXAZ Air Quality disconnected unexpectedly — coordinator will reconnect")
         self._client = None
         self._notify_status_changed()
 

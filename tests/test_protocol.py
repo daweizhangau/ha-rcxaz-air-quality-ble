@@ -1,4 +1,4 @@
-"""Unit tests for xs_air_quality.protocol — pure logic, no BLE hardware required.
+"""Unit tests for rcxaz_air_quality.protocol — pure logic, no BLE hardware required.
 
 All test packets are taken verbatim from the protocol analysis in
 README_ANALYSIS.md.
@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import pytest
 
-from custom_components.xs_air_quality.protocol import (
+from custom_components.rcxaz_air_quality.protocol import (
     FRAME_PREFIX,
     ACTIVATION_BYTE,
     PAGE_DATETIME,

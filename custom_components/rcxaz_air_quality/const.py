@@ -1,6 +1,6 @@
-"""Constants for the XS Air Quality Detector integration."""
+"""Constants for the RCXAZ Air Quality Detector integration."""
 
-DOMAIN = "xs_air_quality"
+DOMAIN = "rcxaz_air_quality"
 
 # BLE GATT characteristic UUIDs (service 0000c760-...)
 C760_SERVICE_UUID = "0000c760-0000-1000-8000-00805f9b34fb"

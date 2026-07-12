@@ -1,4 +1,4 @@
-"""XS Air Quality Detector — Home Assistant integration."""
+"""RCXAZ Air Quality Detector — Home Assistant integration."""
 from __future__ import annotations
 
 import logging
@@ -16,10 +16,10 @@ PLATFORMS = ["sensor"]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up XS Air Quality Detector from a config entry."""
-    from .coordinator import XSAirQualityCoordinator
+    """Set up RCXAZ Air Quality Detector from a config entry."""
+    from .coordinator import RCXAZAirQualityCoordinator
 
-    coordinator = XSAirQualityCoordinator(hass, entry)
+    coordinator = RCXAZAirQualityCoordinator(hass, entry)
     await coordinator.async_setup()
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
@@ -36,6 +36,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
-        coordinator: XSAirQualityCoordinator = hass.data[DOMAIN].pop(entry.entry_id)
+        coordinator: RCXAZAirQualityCoordinator = hass.data[DOMAIN].pop(entry.entry_id)
         await coordinator.async_shutdown()
     return unload_ok

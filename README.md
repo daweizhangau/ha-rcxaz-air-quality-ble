@@ -1,8 +1,8 @@
-<img src="img/device_2co11.png" width="180" align="right" style="margin-left: 16px" alt="XS Air Quality Detector">
+<img src="img/device_2co11.png" width="180" align="right" style="margin-left: 16px" alt="RCXAZ Air Quality Detector">
 
-# XS Air Quality Detector — Home Assistant Integration
+# RCXAZ Air Quality Detector — Home Assistant Integration
 
-[![Tests](https://github.com/daweizhangau/ha-xs-air-quality-ble/actions/workflows/tests.yml/badge.svg)](https://github.com/daweizhangau/ha-xs-air-quality-ble/actions/workflows/tests.yml)
+[![Tests](https://github.com/daweizhangau/ha-rcxaz-air-quality-ble/actions/workflows/tests.yml/badge.svg)](https://github.com/daweizhangau/ha-rcxaz-air-quality-ble/actions/workflows/tests.yml)
 
 A [HACS](https://hacs.xyz) custom integration that brings the **RCXAZ Air Quality Detector** into Home Assistant. It uses HA's native Bluetooth APIs, so both the built-in adapter **and** [ESPHome Bluetooth proxies](https://esphome.io/components/bluetooth_proxy.html) work out of the box.
 
@@ -34,7 +34,7 @@ The device measures temperature, humidity, CO₂, TVOC, formaldehyde (HCHO), and
 
 - Home Assistant 2024.1 or later
 - A Bluetooth adapter accessible to HA (built-in, USB dongle, or [ESPHome Bluetooth proxy](https://esphome.io/components/bluetooth_proxy/))
-- XS Air Quality Detector (model 2CO11), powered on with Bluetooth enabled
+- RCXAZ Air Quality Detector (model 2CO11), powered on with Bluetooth enabled
 
 ---
 
@@ -44,12 +44,12 @@ The device measures temperature, humidity, CO₂, TVOC, formaldehyde (HCHO), and
 
 1. Open HACS → **Integrations** → ⋮ → **Custom repositories**.
 2. Add this repository URL and select category **Integration**.
-3. Search for **XS Air Quality Detector** and click **Download**.
+3. Search for **RCXAZ Air Quality Detector** and click **Download**.
 4. Restart Home Assistant.
 
 ### Manual
 
-Copy the `custom_components/xs_air_quality/` folder into your HA `config/custom_components/` directory and restart Home Assistant.
+Copy the `custom_components/rcxaz_air_quality/` folder into your HA `config/custom_components/` directory and restart Home Assistant.
 
 ---
 
@@ -58,7 +58,7 @@ Copy the `custom_components/xs_air_quality/` folder into your HA `config/custom_
 1. Power on the detector and enable Bluetooth.
 2. Go to **Settings → Devices & Services** in Home Assistant.
 3. A discovered **XS-**** notification will appear — click **Configure**.
-   - If auto-discovery does not appear, click **+ Add Integration**, search for *XS Air Quality*, and enter the Bluetooth MAC address manually.
+   - If auto-discovery does not appear, click **+ Add Integration**, search for *RCXAZ Air Quality*, and enter the Bluetooth MAC address manually.
 
 The device pushes sensor data autonomously — no polling interval to configure.
 
