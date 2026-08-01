@@ -297,10 +297,15 @@ class RSSISensor(RCXAZAirQualitySensor):
 
 
 class LastSeenSensor(RCXAZAirQualitySensor):
-    """UTC timestamp of the most recent successful reading."""
+    """UTC timestamp of the most recent successful reading.
+
+    Disabled by default to avoid flooding the activity log with
+    per-second timestamp updates.  Enable manually if needed.
+    """
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_entity_registry_enabled_default = False
     _attr_name = "Last Seen"
     _attr_icon = "mdi:clock-check-outline"
 
