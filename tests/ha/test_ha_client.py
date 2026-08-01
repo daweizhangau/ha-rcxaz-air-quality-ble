@@ -5,6 +5,7 @@ All BLE operations are mocked — no hardware or bleak install required
 """
 from __future__ import annotations
 
+from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -14,6 +15,7 @@ from custom_components.rcxaz_air_quality.ha_client import RCXAZAirQualityHAClien
 from custom_components.rcxaz_air_quality.protocol import (
     ACTIVATION_BYTE,
     SensorReading,
+    make_datetime_payload,
 )
 from tests.ha.conftest import (
     TEST_ADDRESS,
@@ -83,8 +85,8 @@ async def test_connect_subscribes_to_notifications():
 
 
 @pytest.mark.asyncio
-async def test_connect_sends_activation_and_time_sync():
-    """connect() sends activation byte and datetime sync to C762."""
+async def test_connect_sends_activation():
+    """connect() sends activation byte to C762 — clock sync is handled by the coordinator."""
     ble_device = _make_ble_device()
     write_mock = AsyncMock()
     bleak_client = _make_bleak_client(write_mock)
@@ -98,14 +100,44 @@ async def test_connect_sends_activation_and_time_sync():
 
     await client.disconnect()
 
-    # write_gatt_char(char, data, response=False) — data is the second positional arg
+    # Only one write during connect() — the activation byte
+    assert write_mock.call_count == 1
     activation_call = write_mock.call_args_list[0]
     assert activation_call[0][1] == ACTIVATION_BYTE
 
-    # Second write should be datetime sync (0x23 prefix)
-    time_sync_call = write_mock.call_args_list[1]
-    payload = time_sync_call[0][1]
-    assert payload[0] == 0x23  # frame prefix
+
+@pytest.mark.asyncio
+async def test_sync_clock_sends_payload():
+    """sync_clock() writes the expected datetime frame to C762."""
+    ble_device = _make_ble_device()
+    write_mock = AsyncMock()
+    bleak_client = _make_bleak_client(write_mock)
+
+    fixed_now = datetime(2026, 7, 31, 14, 30, 0)
+    expected_payload = make_datetime_payload(fixed_now)
+
+    with patch(
+        "custom_components.rcxaz_air_quality.ha_client.establish_connection",
+        AsyncMock(return_value=bleak_client),
+    ), patch("asyncio.sleep", AsyncMock()):
+        client = RCXAZAirQualityHAClient(ble_device)
+        await client.connect()
+
+        write_mock.reset_mock()  # clear writes from connect()
+        await client.sync_clock(fixed_now)
+
+    assert write_mock.call_count == 1
+    actual_payload = write_mock.call_args[0][1]
+    assert actual_payload == expected_payload
+
+
+@pytest.mark.asyncio
+async def test_sync_clock_non_fatal_when_not_connected():
+    """sync_clock() does not raise when write_char is None."""
+    ble_device = _make_ble_device()
+    client = RCXAZAirQualityHAClient(ble_device)
+    # No connect() → _write_char is None → should log and return silently
+    await client.sync_clock()
 
 
 @pytest.mark.asyncio

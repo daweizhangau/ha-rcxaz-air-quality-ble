@@ -210,10 +210,21 @@ class RCXAZAirQualityHAClient:
         except Exception:  # noqa: BLE001
             _LOGGER.debug("Activation write failed (non-fatal)", exc_info=True)
 
-        # Clock sync — non-fatal
+    async def sync_clock(self, now: Optional[datetime] = None) -> None:
+        """Send the current datetime to the device's internal clock.
+
+        Non-fatal — the device continues to push sensor data even if the
+        clock sync write fails.  Pass a ``now`` value to control what time
+        is sent (useful for testing or for sending HA local time).
+        """
+        if self._write_char is None:
+            _LOGGER.debug("Clock sync skipped — not connected")
+            return
         try:
-            payload = make_datetime_payload()
-            await self._client.write_gatt_char(write_char, payload, response=False)
+            payload = make_datetime_payload(now)
+            await self._client.write_gatt_char(
+                self._write_char, payload, response=False
+            )
             _LOGGER.debug("Clock synced")
         except Exception:  # noqa: BLE001
             _LOGGER.debug("Clock sync failed (non-fatal)", exc_info=True)

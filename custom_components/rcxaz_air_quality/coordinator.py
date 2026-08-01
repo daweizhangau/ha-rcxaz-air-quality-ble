@@ -22,16 +22,13 @@ from homeassistant.components import bluetooth
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN
+from .const import CLOCK_SYNC_INTERVAL, DOMAIN, HEALTH_CHECK_INTERVAL
 from .ha_client import DeviceNotAvailableError, RCXAZAirQualityHAClient
 from .protocol import SensorReading
 
 _LOGGER = logging.getLogger(__name__)
-
-# Health-check interval — how often to verify the connection is still alive.
-# The device pushes at ~1 Hz, so data arrives continuously between checks.
-HEALTH_CHECK_INTERVAL = 30.0
 
 
 class RCXAZAirQualityCoordinator(DataUpdateCoordinator[SensorReading]):
@@ -55,6 +52,7 @@ class RCXAZAirQualityCoordinator(DataUpdateCoordinator[SensorReading]):
         self.config_entry = entry
         self._address: str = entry.unique_id or ""
         self._client: Optional[RCXAZAirQualityHAClient] = None
+        self._clock_sync_count: int = 0
 
     # ── Lifecycle ──────────────────────────────────────────────────────────
 
@@ -119,6 +117,9 @@ class RCXAZAirQualityCoordinator(DataUpdateCoordinator[SensorReading]):
             )
             try:
                 await self._client.connect()
+                # Reset clock-sync counter on reconnect so the first
+                # sync happens after a full hour of continuous connection.
+                self._clock_sync_count = 0
             except DeviceNotAvailableError:
                 # Not in registry yet — no need to log at ERROR level
                 _LOGGER.debug(
@@ -135,6 +136,14 @@ class RCXAZAirQualityCoordinator(DataUpdateCoordinator[SensorReading]):
                     down_for, err,
                 )
                 raise UpdateFailed(f"Reconnect failed: {err}") from err
+
+        # Clock sync — re-sync device clock every hour.
+        # Triggers on the first health check after connect (count == 0)
+        # and then every ~120 calls (120 × 30 s ≈ 3600 s = 1 h).
+        if self._clock_sync_count == 0 or self._clock_sync_count * HEALTH_CHECK_INTERVAL >= CLOCK_SYNC_INTERVAL:
+            await self._client.sync_clock(dt_util.now())
+            self._clock_sync_count = 0
+        self._clock_sync_count += 1
 
         # Return the latest reading, or re-raise the last error if the
         # connection is still down and no data was ever received.  This

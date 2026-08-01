@@ -87,6 +87,7 @@ def mock_ha_client(mock_ble_device: BLEDevice) -> AsyncMock:
     client.last_reading      = SAMPLE_MERGED_READING
     client.connect           = AsyncMock()
     client.disconnect        = AsyncMock()
+    client.sync_clock        = AsyncMock()
     client.update_ble_device = MagicMock()
     return client
 

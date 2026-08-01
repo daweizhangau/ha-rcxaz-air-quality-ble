@@ -11,6 +11,9 @@ C762_WRITE_UUID   = "0000c762-0000-1000-8000-00805f9b34fb"  # Write-without-resp
 NOTIFY_HANDLE = 0x000B
 WRITE_HANDLE  = 0x0009
 
+# Health-check interval — how often to verify the connection is still alive.
+HEALTH_CHECK_INTERVAL = 30.0
+
 # Clock sync interval: re-sync device clock every hour (seconds)
 CLOCK_SYNC_INTERVAL = 3600
 
